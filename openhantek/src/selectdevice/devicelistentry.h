@@ -8,10 +8,10 @@
  * Represents an entry in the {@link DevicesListModel}.
  */
 struct DeviceListEntry {
-    UniqueUSBid id;
+    UniqueUSBid id = 0;
     QString name;
-    bool canConnect;
-    bool needFirmware;
+    bool canConnect = false;
+    bool needFirmware = false;
     QString errorMessage;
     QString getStatus() const {
         return errorMessage.size()? errorMessage : (canConnect?"Ready":(needFirmware?"Firmware upload":"Cannot connect"));

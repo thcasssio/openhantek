@@ -46,9 +46,17 @@ QString libUsbErrorString(int error) {
 }
 
 UniqueUSBid USBDevice::computeUSBdeviceID(libusb_device *device) {
-    UniqueUSBid v = 0;
-    libusb_get_port_numbers(device, (uint8_t *)&v, sizeof(v));
-    return v;
+    const UniqueUSBid bus = UniqueUSBid(libusb_get_bus_number(device)) << 56;
+    uint8_t ports[7] = {};
+    const int depth = libusb_get_port_numbers(device, ports, sizeof(ports));
+    if (depth <= 0 || depth > int(sizeof(ports))) {
+        // A real port path starts with a nonzero port. Reserve a zero first
+        // byte for root hubs and backends without topology information.
+        return bus | (UniqueUSBid(libusb_get_device_address(device)) << 8);
+    }
+    UniqueUSBid id = bus;
+    for (int level = 0; level < depth; ++level) id |= UniqueUSBid(ports[level]) << (8 * level);
+    return id;
 }
 
 USBDevice::USBDevice(DSOModel *model, libusb_device *device, unsigned findIteration)

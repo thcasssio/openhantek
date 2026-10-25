@@ -37,6 +37,7 @@ QVariant DevicesListModel::data(const QModelIndex &index, int role) const
     if (role==Qt::UserRole) return QVariant::fromValue(entries[row].id);
     else if (role==Qt::UserRole+1) return QVariant::fromValue(entries[row].canConnect);
     else if (role==Qt::UserRole+2) return QVariant::fromValue(entries[row].needFirmware);
+    else if (role==Qt::UserRole+3) return entries[row].errorMessage;
 
     if (role == Qt::DisplayRole) {
         if (index.column() == 0) {
@@ -58,9 +59,7 @@ void DevicesListModel::updateDeviceList()
 {
     beginResetModel();
     entries.clear();
-    endResetModel();
     const FindDevices::DeviceList* devices = findDevices->getDevices();
-    beginInsertRows(QModelIndex(),0,(int)devices->size());
     for (auto &i : *devices) {
         DeviceListEntry entry;
         entry.name= QString::fromStdString(i.second->getModel()->name);
@@ -79,5 +78,5 @@ void DevicesListModel::updateDeviceList()
         }
         entries.push_back(entry);
     }
-    endInsertRows();
+    endResetModel();
 }

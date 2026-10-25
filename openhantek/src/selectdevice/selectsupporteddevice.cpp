@@ -52,8 +52,11 @@ std::unique_ptr<USBDevice> SelectSupportedDevice::showSelectDeviceModal(libusb_c
             ui->labelReadyState->setText(tr("Device ready to use"));
         } else {
             ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
-            if (ui->cmbDevices->currentData(Qt::UserRole+2).toBool()) {
-                ui->labelReadyState->setText(tr("Upload in progress..."));
+            const QString error = ui->cmbDevices->currentData(Qt::UserRole+3).toString();
+            if (!error.isEmpty()) {
+                ui->labelReadyState->setText(error);
+            } else if (ui->cmbDevices->currentData(Qt::UserRole+2).toBool()) {
+                ui->labelReadyState->setText(tr("Waiting for device to reconnect..."));
             } else {
                 ui->labelReadyState->setText(tr("Connection failed!"));
             }

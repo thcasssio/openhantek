@@ -31,11 +31,14 @@ int FindDevices::updateDeviceList() {
         libusb_device *device = deviceList[deviceIterator];
         // Get device descriptor
         struct libusb_device_descriptor descriptor;
-        libusb_get_device_descriptor(device, &descriptor);
+        if (libusb_get_device_descriptor(device, &descriptor) < 0) continue;
 
-        DeviceList::const_iterator inList = devices.find(USBDevice::computeUSBdeviceID(device));
+        const UniqueUSBid id = USBDevice::computeUSBdeviceID(device);
+        DeviceList::const_iterator inList = devices.find(id);
 
-        if (inList != devices.end()) {
+        // Firmware upload can replace the USB device at the same port between
+        // polls. Its old descriptor and raw device must not survive that change.
+        if (inList != devices.end() && inList->second->getRawDevice() == device) {
             inList->second->setFindIteration(findIteration);
             continue;
         }
@@ -47,7 +50,7 @@ int FindDevices::updateDeviceList() {
             supported |= descriptor.idVendor == model->vendorIDnoFirmware && descriptor.idProduct == model->productIDnoFirmware;
             if (supported) {
                 ++changes;
-                devices[USBDevice::computeUSBdeviceID(device)] = std::unique_ptr<USBDevice>(new USBDevice(model, device, findIteration));
+                devices[id] = std::unique_ptr<USBDevice>(new USBDevice(model, device, findIteration));
             }
         }
     }

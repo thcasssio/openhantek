@@ -50,6 +50,19 @@ target_compile_definitions(dso2250_protocol PRIVATE
     DSO2250_FACTORY_HEX="${CMAKE_SOURCE_DIR}/openhantek/res/firmware/dso2250x86-firmware.hex")
 add_test(NAME dso2250_protocol COMMAND dso2250_protocol)
 
+# Discovery uses fake enumeration/upload symbols and an offscreen Qt view.
+# It deliberately does not link libusb or the real firmware uploader.
+add_executable(device_discovery device_discovery.cpp
+    ${DSO_TEST_SRC}/usb/usbdevice.cpp
+    ${DSO_TEST_SRC}/usb/usbdevice.h
+    ${DSO_TEST_SRC}/usb/finddevices.cpp
+    ${DSO_TEST_SRC}/selectdevice/deviceslistmodel.cpp
+    ${DSO_TEST_SRC}/hantekdso/dsomodel.cpp
+    ${DSO_TEST_SRC}/hantekdso/modelregistry.cpp
+    ${DSO_TEST_SRC}/hantekdso/controlspecification.cpp)
+dso_test_setup(device_discovery)
+add_test(NAME device_discovery COMMAND device_discovery)
+
 find_package(FFTW REQUIRED)
 add_executable(post_pipeline post_pipeline.cpp
     ${DSO_TEST_SRC}/post/postprocessing.cpp
